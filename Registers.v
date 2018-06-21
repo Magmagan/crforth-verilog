@@ -4,7 +4,7 @@ module Registers (
     input wire c_CLOCKX,
     input wire c_CLOCKY,
     input wire c_CLOCKZ,
-    input wire [2:0] c_STATE,
+    input wire [1:0] c_STATE,
 	 
     input wire [1:0] i_SSRSet,
 	 
