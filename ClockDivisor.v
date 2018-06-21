@@ -11,9 +11,9 @@ reg o_CLOCKB = 0;
 reg o_CLOCKC = 0;
 reg o_CLOCKD = 0;
 reg o_CLOCKE = 0;
-reg o_CLOCKF = 1;
+reg o_CLOCKF = 0;
 
-reg [2:0] state = 5;
+reg [2:0] state = 1;
 wire [2:0] state_plus_one = state == 6 ? 0 : state + 1;
 
 assign o_CYCLEX = o_CLOCKA ^ o_CLOCKB;
