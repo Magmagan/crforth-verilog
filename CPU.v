@@ -1,5 +1,6 @@
 module CPU(
-    input wire clk
+    input wire clk,
+	 output wire [15:0] ins
 );
 
 /*
@@ -125,7 +126,7 @@ assign w_mux_mem_raddr = w_cstate == 1 ? w_reg_pc :
                                        : w_reg_pc;
 
 wire [15:0] w_mux_mem_raddr_with_offset;
-assign w_mux_mem_waddr_with_offset = w_mux_mem_raddr + w_reg_ofr;
+assign w_mux_mem_raddr_with_offset = w_mux_mem_raddr + w_reg_ofr;
 
 wire [3:0] w_mux_reg_waddr;
 assign w_mux_reg_waddr = w_cstate == 1 ? w_cuc_reg_waddr :
@@ -134,7 +135,7 @@ assign w_mux_reg_waddr = w_cstate == 1 ? w_cuc_reg_waddr :
                                        : w_cuc_reg_waddr;
 
 wire [15:0] w_mux_reg_wdata;
-assign w_mux_reg_waddr = w_cstate == 1 ? w_mux_op1 :
+assign w_mux_reg_wdata = w_cstate == 1 ? w_mux_op1 :
                          w_cstate == 2 ? w_stack_new_value :
                          w_cstate == 3 ? w_mux_op1 
                                        : w_mux_op1;
@@ -154,6 +155,8 @@ assign w_iop_setop1 = w_mux_op1;
 assign w_iop_setop2 = w_mux_op2;
 
 assign w_iop_setins = w_mux_instruction;
+
+assign ins = w_mux_instruction;
 
 /*
 #######################################################################
