@@ -4,7 +4,7 @@ module ClockDivisor (
     output wire o_CYCLEX,
     output wire o_CYCLEY,
     output wire o_CYCLEZ,
-    output wire [2:0] o_STATE
+    output wire [1:0] o_STATE
 );
 
 reg o_CLOCKA = 0;
