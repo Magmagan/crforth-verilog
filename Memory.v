@@ -12,7 +12,7 @@ module Memory (
 );
 
 
-reg [15:0] memcell [64:0];
+reg [15:0] memcell [63:0];
 
 initial
     $readmemh("mem.list", memcell);
