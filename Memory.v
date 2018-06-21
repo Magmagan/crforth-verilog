@@ -15,23 +15,21 @@ module Memory (
 reg [15:0] memcell [63:0];
 
 initial
-    $readmemh("mem.list", memcell);
+    $readmemb("mem.list", memcell);
 
-always @(negedge (c_XCLOCK || c_YCLOCK || c_ZCLOCK)) begin
+always @(posedge (c_XCLOCK || c_YCLOCK || c_ZCLOCK)) begin
    
     o_OP1 <= memcell [i_RADDR];
     o_OP2 <= memcell [i_RADDR - 1];
    
 end
 	 
-always @(posedge c_ZCLOCK) begin
+always @(negedge c_ZCLOCK) begin
  
     if (f_WRITE) begin
         memcell [i_WADDR] <= i_DATA ;
     end
     
 end
-
-
 
 endmodule
