@@ -1,21 +1,21 @@
-
 module CPU(
     input wire clk
 );
+
+/*
+#######################################################################
+                                WIRING                                 
+#######################################################################
+*/
+
+// ClockDivisor
 
 wire w_cyclex;
 wire w_cycley;
 wire w_cyclez;
 wire [1:0] w_cstate;
 
-ClockDivisor divisor (
-    .i_CLOCK  (clk),
-    .o_CYCLEX (w_cyclex),
-    .o_CYCLEY (w_cycley),
-    .o_CYCLEZ (w_cyclez),
-    .o_STATE  (w_cstate)
-);
-
+// Memory
 
 wire [15:0] w_mem_raddr;
 wire [15:0] w_mem_waddr;
@@ -24,17 +24,7 @@ wire [15:0] w_mem_rdata2;
 wire [15:0] w_mem_wdata;
 //wire w_mem_write;
 
-Memory memory (
-    .c_XCLOCK (w_cyclex),
-    .c_YCLOCK (w_cycley),
-    .c_ZCLOCK (w_cyclez),
-    .i_RADDR  (w_mem_raddr),
-    .i_WADDR  (w_mem_waddr),
-    .i_DATA   (w_mem_wdata),
-    .o_OP1    (w_mem_rdata),
-    .o_OP2    (w_mem_rdata2),
-    .f_WRITE  (w_mem_write)
-);
+// Registers
 
 //wire w_reg_ssrset
 wire [15:0] w_reg_raddr;
@@ -49,6 +39,73 @@ wire [15:0] w_reg_pc;
 wire [15:0] w_reg_psp;
 wire [15:0] w_reg_rsp;
 wire [15:0] w_reg_ofr;
+
+// ALU
+
+wire [15:0] w_alu_rop1;
+wire [15:0] w_alu_rop2;
+wire [15:0] w_alu_result;
+//wire [3:0]  w_alu_control;
+
+// Operands registers
+
+wire [15:0] w_iop_setop1;
+wire [15:0] w_iop_setop2;
+wire [15:0] w_iop_op1;
+wire [15:0] w_iop_op2;
+
+// Instruction register
+
+wire [15:0] w_iop_setins;
+wire [15:0] w_iop_ins;
+
+// Control unit
+
+wire [15:0] w_cuc_instruction;
+wire  [1:0] w_cuc_reg_setssr;
+wire  [3:0] w_cuc_alu_control;
+wire [15:0] w_cuc_reg_spchange;
+wire        w_cuc_mem_write;
+wire  [2:0] w_cuc_mux_memdata;
+wire        w_cuc_mux_memaddr;
+wire  [3:0] w_cuc_reg_raddr;
+wire  [3:0] w_cuc_reg_waddr;
+wire        w_cuc_reg_write;
+wire        w_cuc_mux_jumpaddr;
+
+/*
+#######################################################################
+                              MODULES                                  
+#######################################################################
+*/
+
+
+
+/*
+#######################################################################
+                              MODULES                                  
+#######################################################################
+*/
+
+ClockDivisor divisor (
+    .i_CLOCK  (clk),
+    .o_CYCLEX (w_cyclex),
+    .o_CYCLEY (w_cycley),
+    .o_CYCLEZ (w_cyclez),
+    .o_STATE  (w_cstate)
+);
+
+Memory memory (
+    .c_XCLOCK (w_cyclex),
+    .c_YCLOCK (w_cycley),
+    .c_ZCLOCK (w_cyclez),
+    .i_RADDR  (w_mem_raddr),
+    .i_WADDR  (w_mem_waddr),
+    .i_DATA   (w_mem_wdata),
+    .o_OP1    (w_mem_rdata),
+    .o_OP2    (w_mem_rdata2),
+    .f_WRITE  (w_mem_write)
+);
 
 Registers regbank (
     .c_CLOCKX  (w_cyclex),
@@ -70,11 +127,6 @@ Registers regbank (
     .o_OfR     (w_reg_ofr)
 );
 
-wire [15:0] w_alu_rop1;
-wire [15:0] w_alu_rop2;
-wire [15:0] w_alu_result;
-//wire [3:0]  w_alu_control;
-
 ALU alu (
     .c_YCLOCK  (w_cycley),
     .i_OP1     (w_alu_rop1),
@@ -82,11 +134,6 @@ ALU alu (
     .o_RESULT  (w_alu_result),
     .f_aluctrl (w_alu_control)
 );
-
-wire [15:0] w_iop_setop1;
-wire [15:0] w_iop_setop2;
-wire [15:0] w_iop_op1;
-wire [15:0] w_iop_op2;
 
 OPRegs operands (
     .c_CLOCKY (w_cycley),
@@ -96,13 +143,24 @@ OPRegs operands (
     .o_OP2    (w_iop_op2)
 );
 
-wire [15:0] w_iop_setins;
-wire [15:0] w_iop_ins;
-
 InstructionReg instructionreg (
     .c_CLOCKX         (w_cyclex),
     .i_SETINSTRUCTION (w_iop_setins),
     .o_INSTRUCTION    (w_iop_ins)
+);
+
+ControlUnit controlunit (
+    .i_INSTRUCTION  (w_cuc_instruction),
+    .o_SETSSR       (w_cuc_reg_setssr),
+    .o_ALUCONTROL   (w_cuc_alu_control),
+    .o_SPCHANGE     (w_cuc_reg_spchange),
+    .o_MEMWRITE     (w_cuc_mem_write),
+    .o_MUXMEMDATA   (w_cuc_mux_memdata),
+    .o_MUXMEMADDR   (w_cuc_mux_memaddr),
+    .o_REGREADADDR  (w_cuc_reg_raddr),
+    .o_REGWRITEADDR (w_cuc_reg_waddr),
+    .o_REGWRITE     (w_cuc_reg_write),
+    .o_MUXJUMPADDR  (w_cuc_mux_jumpaddr)
 );
 
 endmodule
