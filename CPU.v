@@ -22,15 +22,12 @@ wire [15:0] w_mem_waddr;
 wire [15:0] w_mem_rdata;
 wire [15:0] w_mem_rdata2;
 wire [15:0] w_mem_wdata;
-//wire w_mem_write;
 
 // Registers
 
-//wire w_reg_ssrset
 wire [15:0] w_reg_raddr;
 wire [15:0] w_reg_waddr;
 wire [15:0] w_reg_wdata;
-//wire w_reg_write
 wire [15:0] w_reg_wpcdata;
 wire [15:0] w_reg_rdata;
 wire w_reg_ssr;
@@ -44,7 +41,6 @@ wire [15:0] w_reg_ofr;
 wire [15:0] w_alu_rop1;
 wire [15:0] w_alu_rop2;
 wire [15:0] w_alu_result;
-//wire [3:0]  w_alu_control;
 
 // Operands registers
 
@@ -78,13 +74,8 @@ wire        w_cuc_mux_jumpaddr;
 #######################################################################
 */
 
-wire [15:0] w_pc_with_offset;
-assign w_pc_with_offset = w_reg_pc + w_reg_ofr;
-
 wire [15:0] w_stack_address;
-wire [15:0] w_stack_read_address_with_offset;
 assign w_stack_address =  w_reg_ssr == 0 ? w_reg_psp : w_reg_rsp;
-assign w_stack_read_address_with_offset = w_stack_address + w_reg_ofr;
 
 wire  [3:0] w_sp_register_address;
 assign w_sp_register_address = w_reg_ssr == 0 ? 1 : 2;
@@ -101,11 +92,8 @@ assign w_mux_op1 = w_cycley || (w_cstate == 3 && !w_cyclez) ? w_mem_rdata
                                                             : w_iop_op1;
 
 wire [15:0] w_mux_op2;
-assign w_mux_op2 = w_cycley || (w_cstate == 3 && !w_cyclez) ? w_mem_rdata
+assign w_mux_op2 = w_cycley || (w_cstate == 3 && !w_cyclez) ? w_mem_rdata2
                                                             : w_iop_op2;
-
-wire [15:0] w_op1_with_offset;
-assign w_op1_with_offset = w_mux_op1 + w_reg_ofr;
 
 wire [15:0] w_mux_mem_wdata;
 assign w_mux_mem_wdata = w_cuc_mux_memdata == 0 ? w_mux_instruction :
@@ -131,10 +119,13 @@ assign w_mux_jump_address = w_cuc_mux_jumpaddr == 0 ? w_reg_pc + 1 :
                                                     : w_reg_pc;
 
 wire [15:0] w_mux_mem_raddr;
-assign w_mux_mem_raddr = w_cstate == 1 ? w_pc_with_offset :
-                         w_cstate == 2 ? w_stack_read_address_with_offset :
-                         w_cstate == 3 ? w_op1_with_offset 
-                                       : w_pc_with_offset;
+assign w_mux_mem_raddr = w_cstate == 1 ? w_reg_pc :
+                         w_cstate == 2 ? w_stack_address :
+                         w_cstate == 3 ? w_mux_op1 
+                                       : w_reg_pc;
+
+wire [15:0] w_mux_mem_raddr_with_offset;
+assign w_mux_mem_waddr_with_offset = w_mux_mem_raddr + w_reg_ofr;
 
 wire [15:0] w_mux_reg_waddr;
 assign w_mux_reg_waddr = w_cstate == 1 ? w_cuc_reg_waddr :
@@ -147,6 +138,22 @@ assign w_mux_reg_waddr = w_cstate == 1 ? w_mux_op1 :
                          w_cstate == 2 ? w_stack_new_value :
                          w_cstate == 3 ? w_mux_op1 
                                        : w_mux_op1;
+
+assign w_mem_raddr = w_mux_mem_raddr_with_offset;
+assign w_mem_waddr = w_mux_mem_waddr_with_offset;
+assign w_mem_wdata = w_mux_mem_wdata;
+
+assign w_reg_waddr = w_mux_reg_waddr;
+assign w_reg_wdata = w_mux_reg_wdata;
+assign w_reg_wpcdata = w_mux_jump_address;
+
+assign w_alu_rop1 = w_mux_op1;
+assign w_alu_rop2 = w_mux_op2;
+
+assign w_iop_setop1 = w_mux_op1;
+assign w_iop_setop2 = w_mux_op2;
+
+assign w_iop_setins = w_mux_instruction;
 
 /*
 #######################################################################
@@ -171,7 +178,7 @@ Memory memory (
     .i_DATA   (w_mem_wdata),
     .o_OP1    (w_mem_rdata),
     .o_OP2    (w_mem_rdata2),
-    .f_WRITE  (w_mem_write)
+    .f_WRITE  (w_cuc_mem_write)
 );
 
 Registers regbank (
@@ -179,11 +186,11 @@ Registers regbank (
     .c_CLOCKY  (w_cycley),
     .c_CLOCKZ  (w_cyclez),
     .c_STATE   (w_cstate),
-    .i_SSRSet  (w_reg_ssrset),
-    .i_RADDR   (w_reg_raddr),
+    .i_SSRSet  (w_cuc_reg_setssr),
+    .i_RADDR   (w_cuc_reg_raddr),
     .i_WADDR   (w_reg_waddr),
     .i_DATA    (w_reg_wdata),
-    .f_WRITE   (w_reg_write),
+    .f_WRITE   (w_cuc_reg_write),
     .i_PCDATA  (w_reg_wpcdata),
     .o_OUT     (w_reg_rdata),
     .o_SSR     (w_reg_ssr),
@@ -198,7 +205,7 @@ ALU alu (
     .i_OP1     (w_alu_rop1),
     .i_OP2     (w_alu_rop2),
     .o_RESULT  (w_alu_result),
-    .f_aluctrl (w_alu_control)
+    .f_aluctrl (w_cuc_alu_control)
 );
 
 OPRegs operands (
