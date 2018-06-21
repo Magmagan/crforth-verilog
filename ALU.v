@@ -7,7 +7,7 @@ module ALU (
     input [3:0] f_aluctrl       // Control signal
  );
 
-always @ (posedge c_YCLOCK) begin
+always @ (negedge c_YCLOCK) begin
     
     case (f_aluctrl)
         
@@ -34,10 +34,10 @@ always @ (posedge c_YCLOCK) begin
         4'b1010: o_RESULT <= i_OP2 | i_OP1;                         // OR
         4'b1011: o_RESULT <= i_OP2 ^ i_OP1;                         // XOR
         
-        4'b1100: o_RESULT <= i_OP2 < i_OP1; 	            	        // <
-        4'b1101: o_RESULT <= i_OP2 <= i_OP1; 	            	     // <=
-        4'b1110: o_RESULT <= i_OP2 == i_OP1; 	            	     // =
-        4'b1111: o_RESULT <= i_OP2 != i_OP1; 	            	     // <>
+        4'b1100: o_RESULT <= i_OP2 <  i_OP1 ? -1 : 0; 	   	        // <
+        4'b1101: o_RESULT <= i_OP2 <= i_OP1 ? -1 : 0; 	            // <=
+        4'b1110: o_RESULT <= i_OP2 == i_OP1 ? -1 : 0; 	            // =
+        4'b1111: o_RESULT <= i_OP2 != i_OP1 ? -1 : 0; 	            // <>
         
     endcase
     
