@@ -15,7 +15,6 @@ module Registers (
     input wire f_WRITE,
 	 
     input wire [15:0] i_PCDATA,
-    input wire f_PCWRITE,
 	 
     output wire o_SSR,
     output wire [15:0] o_PC,
@@ -71,7 +70,7 @@ always @ (negedge (c_CLOCKY || c_CLOCKZ)) begin
         if (f_WRITE) begin
             registers[i_WADDR] <= i_DATA;
         end
-        if (f_PCWRITE && (i_WADDR != 0 || !f_WRITE)) begin
+        if (i_WADDR != 0 || !f_WRITE) begin
             registers[0] <= i_PCDATA;
         end
     end

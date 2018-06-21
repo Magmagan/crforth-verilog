@@ -10,7 +10,7 @@ reg [15:0] instruction;
 assign o_INSTRUCTION = instruction;
 
 always @(negedge c_CLOCKX) begin
-    instruction = i_SETINSTRUCTION;
+    instruction <= i_SETINSTRUCTION;
 end
 
 endmodule

@@ -32,7 +32,6 @@ wire [15:0] w_reg_waddr;
 wire [15:0] w_reg_wdata;
 //wire w_reg_write
 wire [15:0] w_reg_wpcdata;
-//wire w_reg_pcwrite
 wire [15:0] w_reg_rdata;
 wire w_reg_ssr;
 wire [15:0] w_reg_pc;
@@ -75,15 +74,83 @@ wire        w_cuc_mux_jumpaddr;
 
 /*
 #######################################################################
-                              MODULES                                  
+                                 MUXES                                 
 #######################################################################
 */
 
+wire [15:0] w_pc_with_offset;
+assign w_pc_with_offset = w_reg_pc + w_reg_ofr;
 
+wire [15:0] w_stack_address;
+wire [15:0] w_stack_read_address_with_offset;
+assign w_stack_address =  w_reg_ssr == 0 ? w_reg_psp : w_reg_rsp;
+assign w_stack_read_address_with_offset = w_stack_address + w_reg_ofr;
+
+wire  [3:0] w_sp_register_address;
+assign w_sp_register_address = w_reg_ssr == 0 ? 1 : 2;
+
+wire [15:0] w_stack_new_value;
+assign w_stack_new_value = w_stack_address + w_cuc_reg_spchange;
+
+wire [15:0] w_mux_instruction;
+assign w_mux_instruction = w_cyclex || (w_cstate == 2 && !w_cycley) ? w_mem_rdata
+                                                                    : w_iop_ins;
+
+wire [15:0] w_mux_op1;
+assign w_mux_op1 = w_cycley || (w_cstate == 3 && !w_cyclez) ? w_mem_rdata
+                                                            : w_iop_op1;
+
+wire [15:0] w_mux_op2;
+assign w_mux_op2 = w_cycley || (w_cstate == 3 && !w_cyclez) ? w_mem_rdata
+                                                            : w_iop_op2;
+
+wire [15:0] w_op1_with_offset;
+assign w_op1_with_offset = w_mux_op1 + w_reg_ofr;
+
+wire [15:0] w_mux_mem_wdata;
+assign w_mux_mem_wdata = w_cuc_mux_memdata == 0 ? w_mux_instruction :
+                         w_cuc_mux_memdata == 1 ? w_mux_op1         :
+                         w_cuc_mux_memdata == 2 ? w_mux_op2         :
+                         w_cuc_mux_memdata == 3 ? w_alu_result      :
+                         w_cuc_mux_memdata == 4 ? w_mem_rdata       :
+                         w_cuc_mux_memdata == 5 ? w_reg_rdata       :
+                                                  w_mux_instruction ;
+
+wire [15:0] w_mux_mem_waddr;
+assign w_mux_mem_waddr = w_cuc_mux_memaddr == 0 ? w_sp_register_address
+                                                : w_mux_op1;
+
+wire [15:0] w_mux_mem_waddr_with_offset;
+assign w_mux_mem_waddr_with_offset = w_mux_mem_waddr + w_reg_ofr;
+
+wire [15:0] w_mux_jump_address;
+assign w_mux_jump_address = w_cuc_mux_jumpaddr == 0 ? w_reg_pc + 1 :
+                            w_cuc_mux_jumpaddr == 1 ? w_mux_op1 :
+                            w_cuc_mux_jumpaddr == 2 ?
+                                (w_mux_op1 == 0 ? w_mux_op2 : w_reg_pc + 1 )
+                                                    : w_reg_pc;
+
+wire [15:0] w_mux_mem_raddr;
+assign w_mux_mem_raddr = w_cstate == 1 ? w_pc_with_offset :
+                         w_cstate == 2 ? w_stack_read_address_with_offset :
+                         w_cstate == 3 ? w_op1_with_offset 
+                                       : w_pc_with_offset;
+
+wire [15:0] w_mux_reg_waddr;
+assign w_mux_reg_waddr = w_cstate == 1 ? w_cuc_reg_waddr :
+                         w_cstate == 2 ? w_sp_register_address :
+                         w_cstate == 3 ? w_cuc_reg_waddr 
+                                       : w_cuc_reg_waddr;
+
+wire [15:0] w_mux_reg_wdata;
+assign w_mux_reg_waddr = w_cstate == 1 ? w_mux_op1 :
+                         w_cstate == 2 ? w_stack_new_value :
+                         w_cstate == 3 ? w_mux_op1 
+                                       : w_mux_op1;
 
 /*
 #######################################################################
-                              MODULES                                  
+                                MODULES                                
 #######################################################################
 */
 
@@ -118,7 +185,6 @@ Registers regbank (
     .i_DATA    (w_reg_wdata),
     .f_WRITE   (w_reg_write),
     .i_PCDATA  (w_reg_wpcdata),
-    .f_PCWRITE (w_reg_pcwrite),
     .o_OUT     (w_reg_rdata),
     .o_SSR     (w_reg_ssr),
     .o_PC      (w_reg_pc),
