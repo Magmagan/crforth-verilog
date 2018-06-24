@@ -14,8 +14,9 @@ module Memory (
 
 reg [15:0] memcell [63:0];
 
-initial
+initial begin
     $readmemb("mem.list", memcell);
+end
 
 always @(posedge (c_XCLOCK || c_YCLOCK || c_ZCLOCK)) begin
    

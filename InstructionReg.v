@@ -7,6 +7,10 @@ module InstructionReg (
 
 reg [15:0] instruction;
 
+initial begin
+    instruction = 0;
+end
+
 assign o_INSTRUCTION = instruction;
 
 always @(negedge c_CLOCKX) begin

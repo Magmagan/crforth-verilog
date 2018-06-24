@@ -7,14 +7,26 @@ module ClockDivisor (
     output wire [1:0] o_STATE
 );
 
-reg o_CLOCKA = 0;
-reg o_CLOCKB = 0;
-reg o_CLOCKC = 0;
-reg o_CLOCKD = 0;
-reg o_CLOCKE = 0;
-reg o_CLOCKF = 0;
+reg o_CLOCKA;
+reg o_CLOCKB;
+reg o_CLOCKC;
+reg o_CLOCKD;
+reg o_CLOCKF;
+reg o_CLOCKE;
 
-reg [1:0] state = 1;
+reg [1:0] state;
+reg start;
+
+initial begin
+    o_CLOCKA = 0;
+    o_CLOCKB = 0;
+    o_CLOCKC = 0;
+    o_CLOCKD = 0;
+    o_CLOCKE = 0;
+    o_CLOCKF = 0;
+    state = 1;
+    start = 1;
+end
 
 assign o_CYCLEX = o_CLOCKA ^ o_CLOCKB;
 assign o_CYCLEY = o_CLOCKC ^ o_CLOCKD;
@@ -25,6 +37,7 @@ always @(posedge i_CLOCK) begin
     
     if (state == 1) begin
         o_CLOCKA <= !o_CLOCKA;
+        start <= 0;
     end
     
     else if (state == 2) begin
@@ -39,7 +52,7 @@ end
 
 always @(negedge i_CLOCK) begin
     
-    if (state == 1) begin
+    if (state == 1 && !start) begin
         o_CLOCKB = !o_CLOCKB;
         state <= 2;
     end

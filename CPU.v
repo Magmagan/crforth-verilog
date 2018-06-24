@@ -26,12 +26,11 @@ wire [15:0] w_mem_wdata;
 
 // Registers
 
-wire  [3:0] w_reg_raddr;
 wire  [3:0] w_reg_waddr;
 wire [15:0] w_reg_wdata;
 wire [15:0] w_reg_wpcdata;
 wire [15:0] w_reg_rdata;
-wire w_reg_ssr;
+wire        w_reg_ssr;
 wire [15:0] w_reg_pc;
 wire [15:0] w_reg_psp;
 wire [15:0] w_reg_rsp;
@@ -139,6 +138,8 @@ assign w_mux_reg_wdata = w_cstate == 1 ? w_mux_op1 :
                          w_cstate == 2 ? w_stack_new_value :
                          w_cstate == 3 ? w_mux_op1 
                                        : w_mux_op1;
+
+assign w_cuc_instruction = w_mux_instruction;
 
 assign w_mem_raddr = w_mux_mem_raddr_with_offset;
 assign w_mem_waddr = w_mux_mem_waddr_with_offset;

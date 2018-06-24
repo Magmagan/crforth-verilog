@@ -10,6 +10,11 @@ module OPRegs(
 reg [15:0] op1;
 reg [15:0] op2;
 
+initial begin
+    op1 = 0;
+    op2 = 0;
+end
+
 assign o_OP1 = op1;
 assign o_OP2 = op2;
 

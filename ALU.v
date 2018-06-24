@@ -7,6 +7,10 @@ module ALU (
     input [3:0] f_aluctrl       // Control signal
  );
 
+initial begin
+    o_RESULT = 0;
+end
+
 always @ (negedge c_YCLOCK) begin
     
     case (f_aluctrl)
