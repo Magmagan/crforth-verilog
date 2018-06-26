@@ -1,7 +1,6 @@
 
 module ClockDivisor (
     input  wire i_CLOCK,
-    
     input  wire i_CUCPAUSE,
     input  wire i_IOPAUSE,
     

@@ -15,6 +15,8 @@ wire w_cyclex;
 wire w_cycley;
 wire w_cyclez;
 wire [1:0] w_cstate;
+wire w_cucpause;
+wire w_ciopause;
 
 // Memory
 
@@ -139,6 +141,9 @@ assign w_mux_reg_wdata = w_cstate == 1 ? w_mux_op1 :
                          w_cstate == 3 ? w_mux_op1 
                                        : w_mux_op1;
 
+assign w_cucpause = 0;
+assign w_ciopause = 0;
+
 assign w_cuc_instruction = w_mux_instruction;
 
 assign w_mem_raddr = w_mux_mem_raddr_with_offset;
@@ -166,11 +171,13 @@ assign ins = w_mux_instruction;
 */
 
 ClockDivisor divisor (
-    .i_CLOCK  (clk),
-    .o_CYCLEX (w_cyclex),
-    .o_CYCLEY (w_cycley),
-    .o_CYCLEZ (w_cyclez),
-    .o_STATE  (w_cstate)
+    .i_CLOCK    (clk),
+    .i_CUCPAUSE (w_ciopause),
+    .i_IOPAUSE  (w_cucpause),
+    .o_CYCLEX   (w_cyclex),
+    .o_CYCLEY   (w_cycley),
+    .o_CYCLEZ   (w_cyclez),
+    .o_STATE    (w_cstate)
 );
 
 Memory memory (
