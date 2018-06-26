@@ -117,7 +117,7 @@ wire [15:0] w_mux_jump_address;
 assign w_mux_jump_address = w_cuc_mux_jumpaddr == 0 ? w_reg_pc + 1 :
                             w_cuc_mux_jumpaddr == 1 ? w_mux_op1 :
                             w_cuc_mux_jumpaddr == 2 ?
-                                (w_mux_op1 == 0 ? w_mux_op2 : w_reg_pc + 1 )
+                                (w_mux_op2 == 0 ? w_mux_op1 : w_reg_pc + 1 )
                                                     : w_reg_pc;
 
 wire [15:0] w_mux_mem_raddr;
