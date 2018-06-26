@@ -130,16 +130,16 @@ wire [15:0] w_mux_mem_raddr_with_offset;
 assign w_mux_mem_raddr_with_offset = w_mux_mem_raddr + w_reg_ofr;
 
 wire [3:0] w_mux_reg_waddr;
-assign w_mux_reg_waddr = w_cstate == 1 ? w_cuc_reg_waddr :
-                         w_cstate == 2 ? w_sp_register_address :
-                         w_cstate == 3 ? w_cuc_reg_waddr 
-                                       : w_cuc_reg_waddr;
+assign w_mux_reg_waddr = w_cstate == 1 && w_cyclex || w_cstate == 2 && !w_cycley ? w_cuc_reg_waddr :
+                         w_cstate == 2 && w_cycley || w_cstate == 3 && !w_cyclez ? w_sp_register_address :
+                         w_cstate == 3 && w_cyclez || w_cstate == 1 && !w_cyclex ? w_cuc_reg_waddr 
+                                                                                 : w_cuc_reg_waddr;
 
 wire [15:0] w_mux_reg_wdata;
-assign w_mux_reg_wdata = w_cstate == 1 ? w_mux_op1 :
-                         w_cstate == 2 ? w_stack_new_value :
-                         w_cstate == 3 ? w_mux_op1 
-                                       : w_mux_op1;
+assign w_mux_reg_wdata = w_cstate == 1 && w_cyclex || w_cstate == 2 && !w_cycley ? w_mux_op1 :
+                         w_cstate == 2 && w_cycley || w_cstate == 3 && !w_cyclez ? w_stack_new_value :
+                         w_cstate == 3 && w_cyclez || w_cstate == 1 && !w_cyclex ? w_mux_op1 
+                                                                                 : w_mux_op1;
 
 assign w_cucpause = 0;
 assign w_ciopause = 0;
