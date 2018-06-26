@@ -107,7 +107,7 @@ assign w_mux_mem_wdata = w_cuc_mux_memdata == 0 ? w_mux_instruction :
                                                   w_mux_instruction ;
 
 wire [15:0] w_mux_mem_waddr;
-assign w_mux_mem_waddr = w_cuc_mux_memaddr == 0 ? w_sp_register_address
+assign w_mux_mem_waddr = w_cuc_mux_memaddr == 0 ? w_stack_address
                                                 : w_mux_op1;
 
 wire [15:0] w_mux_mem_waddr_with_offset;
