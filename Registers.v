@@ -21,7 +21,8 @@ module Registers (
     output wire [15:0] o_PSP,
     output wire [15:0] o_RSP,
     output wire [15:0] o_OfR,
-	 
+	output wire [15:0] o_IOR,
+    
     output reg [15:0] o_OUT
 );
 
@@ -33,12 +34,13 @@ assign o_PC  = registers[0];
 assign o_PSP = registers[1];
 assign o_RSP = registers[2];
 assign o_OfR = registers[3];
+assign o_IOR = registers[15];
 
 initial begin
     SSR = 0;
     registers[0]  = 0;
-    registers[1]  = 48;
-    registers[2]  = 56;
+    registers[1]  = 192;
+    registers[2]  = 224;
     registers[3]  = 0;
     registers[4]  = 0;
     registers[5]  = 0;
@@ -63,10 +65,10 @@ always @ (negedge c_CLOCKX) begin
 end
 
 always @ (negedge (c_CLOCKY || c_CLOCKZ)) begin
-    if (c_STATE == 3) begin // Clock D
+    if (c_STATE == 2 && c_CLOCKY || c_STATE == 3 && !c_CLOCKZ) begin // Clock D
         registers[i_WADDR] <= i_DATA;
     end
-    if (c_STATE == 1) begin // Clock F
+    if (c_STATE == 3 && c_CLOCKZ || c_STATE == 1 && !c_CLOCKX) begin // Clock F
         if (f_WRITE) begin
             registers[i_WADDR] <= i_DATA;
         end

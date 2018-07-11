@@ -3,16 +3,18 @@ module ControlUnit (
     
     input wire [15:0] i_INSTRUCTION,
     
-    output reg [1:0] o_SETSSR,
-    output reg [3:0] o_ALUCONTROL,
+    output reg  [1:0] o_SETSSR,
+    output reg  [3:0] o_ALUCONTROL,
     output reg [15:0] o_SPCHANGE,
-    output reg o_MEMWRITE,
-    output reg [2:0] o_MUXMEMDATA,
-    output reg o_MUXMEMADDR,
-    output reg [3:0] o_REGREADADDR,
-    output reg [3:0] o_REGWRITEADDR,
-    output reg o_REGWRITE,
-    output reg [1:0] o_MUXJUMPADDR
+    output reg        o_MEMWRITE,
+    output reg  [2:0] o_MUXMEMDATA,
+    output reg        o_MUXMEMADDR,
+    output reg  [3:0] o_REGREADADDR,
+    output reg  [3:0] o_REGWRITEADDR,
+    output reg        o_REGWRITE,
+    output reg  [1:0] o_MUXJUMPADDR,
+	 output reg        o_IOTYPE,
+	 output reg        o_IOPAUSE
 );
 
 // Define instruction name constants
@@ -27,6 +29,8 @@ parameter I_AT   = 4'b1001;
 parameter I_WRT  = 4'b1100;
 parameter I_RW   = 4'b1110;
 parameter I_RR   = 4'b1011;
+parameter I_IN   = 4'b1010;
+parameter I_OUT  = 4'b1000;
 parameter I_HALT = 4'b1111;
 
 // Define constants for memory write mux
@@ -130,7 +134,12 @@ always @(*) begin
 	o_REGREADADDR <= i_INSTRUCTION[7:4];
 	
 	// o_REGWRITEADDR
-	o_REGWRITEADDR <= i_INSTRUCTION[7:4];
+	case (i_INSTRUCTION[11:8])
+		I_IN:
+			o_REGWRITEADDR <= 4'b1111;
+		default:
+			o_REGWRITEADDR <= i_INSTRUCTION[7:4];
+	endcase
 	
 	// o_REGWRITE
 	if (i_INSTRUCTION[15] == 0) begin
@@ -138,7 +147,7 @@ always @(*) begin
 	end
 	else begin
 		case (i_INSTRUCTION[11:8]) 
-			I_RW:
+			I_RW, I_IN:
 				o_REGWRITE <= 1;
 			default:
 				o_REGWRITE <= 0;
@@ -159,6 +168,29 @@ always @(*) begin
 				o_MUXJUMPADDR <= MJA_HALT;
 			default:
 				o_MUXJUMPADDR <= MJA_PC;
+		endcase
+	end
+	
+	// o_IOTYPE
+	case (i_INSTRUCTION[11:8]) 
+		I_OUT:
+			o_IOTYPE <= 0;
+		I_IN:
+			o_IOTYPE <= 1;
+		default:
+			o_IOTYPE <= 0;
+	endcase
+	
+	// o_IOPAUSE
+	if (i_INSTRUCTION[15] == 0) begin
+		o_IOPAUSE <= 0;
+	end
+	else begin
+		case (i_INSTRUCTION[11:8]) 
+			I_IN, I_OUT:
+				o_IOPAUSE <= 1;
+			default:
+				o_IOPAUSE <= 0;
 		endcase
 	end
 	

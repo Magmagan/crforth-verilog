@@ -1,8 +1,8 @@
 
 module ClockDivisor (
     input  wire i_CLOCK,
-    input  wire i_CUCPAUSE,
-    input  wire i_IOPAUSE,
+    input  wire i_CUCPAUSE, // FROM CONTROL UNIT
+    input  wire i_IOSTATE,  // FROM IO
     
     output wire o_CYCLEX,
     output wire o_CYCLEY,
@@ -20,6 +20,7 @@ reg o_CLOCKE;
 reg [1:0] state;
 reg start;
 reg pause;
+wire enabled;
 
 initial begin
     o_CLOCKA = 0;
@@ -37,7 +38,7 @@ assign o_CYCLEX = o_CLOCKA ^ o_CLOCKB;
 assign o_CYCLEY = o_CLOCKC ^ o_CLOCKD;
 assign o_CYCLEZ = o_CLOCKE ^ o_CLOCKF;
 assign o_STATE  = state;
-assign enabled  = pause == i_IOPAUSE;
+assign enabled  = pause == i_IOSTATE;
 
 always @(posedge i_CLOCK) begin
     

@@ -1,6 +1,15 @@
 module CPU(
-    input wire clk,
-	 output wire [15:0] ins
+    input  wire        clk,
+	 input  wire [15:0] switches,
+	 input  wire        iostate,
+	 
+    output wire        iotype,
+    output wire        iopause,
+	 output wire [15:0] debug0,
+	 output wire [15:0] debug1,
+	 output wire [15:0] debug2,
+	 output wire [15:0] debug3,
+    output wire [15:0] debug4
 );
 
 /*
@@ -16,7 +25,7 @@ wire w_cycley;
 wire w_cyclez;
 wire [1:0] w_cstate;
 wire w_cucpause;
-wire w_ciopause;
+wire w_ciostate;
 
 // Memory
 
@@ -37,6 +46,7 @@ wire [15:0] w_reg_pc;
 wire [15:0] w_reg_psp;
 wire [15:0] w_reg_rsp;
 wire [15:0] w_reg_ofr;
+wire [15:0] w_reg_ior;
 
 // ALU
 
@@ -69,6 +79,8 @@ wire  [3:0] w_cuc_reg_raddr;
 wire  [3:0] w_cuc_reg_waddr;
 wire        w_cuc_reg_write;
 wire  [1:0] w_cuc_mux_jumpaddr;
+wire        w_cuc_iso_iotype;
+wire        w_cuc_iso_iopause;
 
 /*
 #######################################################################
@@ -138,11 +150,14 @@ assign w_mux_reg_waddr = w_cstate == 1 && w_cyclex || w_cstate == 2 && !w_cycley
 wire [15:0] w_mux_reg_wdata;
 assign w_mux_reg_wdata = w_cstate == 1 && w_cyclex || w_cstate == 2 && !w_cycley ? w_mux_op1 :
                          w_cstate == 2 && w_cycley || w_cstate == 3 && !w_cyclez ? w_stack_new_value :
-                         w_cstate == 3 && w_cyclez || w_cstate == 1 && !w_cyclex ? w_mux_op1 
+                         w_cstate == 3 && w_cyclez || w_cstate == 1 && !w_cyclex ? (w_cuc_iso_iopause ? switches : w_mux_op1 )
                                                                                  : w_mux_op1;
 
-assign w_cucpause = 0;
-assign w_ciopause = 0;
+assign iotype  = w_cuc_iso_iotype;
+assign iopause = w_cuc_iso_iopause;
+
+assign w_ciostate = iostate;
+assign w_cucpause = w_cuc_iso_iopause;
 
 assign w_cuc_instruction = w_mux_instruction;
 
@@ -162,7 +177,11 @@ assign w_iop_setop2 = w_mux_op2;
 
 assign w_iop_setins = w_mux_instruction;
 
-assign ins = w_mux_instruction;
+assign debug0 = w_reg_ior;
+assign debug1 = w_reg_psp    [3:0];
+assign debug2 = w_reg_psp    [7:4];
+assign debug3 = w_reg_wpcdata[3:0];
+assign debug4 = w_reg_wpcdata[7:4];
 
 /*
 #######################################################################
@@ -172,8 +191,8 @@ assign ins = w_mux_instruction;
 
 ClockDivisor divisor (
     .i_CLOCK    (clk),
-    .i_CUCPAUSE (w_ciopause),
-    .i_IOPAUSE  (w_cucpause),
+    .i_CUCPAUSE (w_cucpause),
+    .i_IOSTATE  (w_ciostate),
     .o_CYCLEX   (w_cyclex),
     .o_CYCLEY   (w_cycley),
     .o_CYCLEZ   (w_cyclez),
@@ -208,7 +227,8 @@ Registers regbank (
     .o_PC      (w_reg_pc),
     .o_PSP     (w_reg_psp),
     .o_RSP     (w_reg_rsp),
-    .o_OfR     (w_reg_ofr)
+    .o_OfR     (w_reg_ofr),
+    .o_IOR     (w_reg_ior)
 );
 
 ALU alu (
@@ -244,7 +264,9 @@ ControlUnit controlunit (
     .o_REGREADADDR  (w_cuc_reg_raddr),
     .o_REGWRITEADDR (w_cuc_reg_waddr),
     .o_REGWRITE     (w_cuc_reg_write),
-    .o_MUXJUMPADDR  (w_cuc_mux_jumpaddr)
+    .o_MUXJUMPADDR  (w_cuc_mux_jumpaddr),
+	 .o_IOTYPE       (w_cuc_iso_iotype),
+	 .o_IOPAUSE      (w_cuc_iso_iopause)
 );
 
 endmodule
